@@ -563,10 +563,13 @@ def InstallGoogleSMTPConnection():
 def InstallAuthentication(settings):
     if "django.contrib.auth" not in settings.INSTALLED_APPS:
         return
+    helper_models = None
     try:
-        helper_models = __import__(settings.AUTH_USER_MODULE, {}, {}, [''])
-        if settings.AUTH_USER_MODULE == 'appengine_django.auth.models':
-            from appengine_django.auth import models as helper_models
+        user_module = getattr(settings,'AUTH_USER_MODULE',None)
+        if not user_module:
+            user_module = 'appengine_django.auth.models'
+        helper_models = __import__(user_module, {}, {}, [''])            
+        if user_module == 'appengine_django.auth.models':
             from django.contrib.auth import decorators as django_decorators
             from appengine_django.auth.decorators import login_required
             django_decorators.login_required = login_required
