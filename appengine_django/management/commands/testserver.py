@@ -25,50 +25,50 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-  """Overrides the default Django testserver command.
+    """Overrides the default Django testserver command.
 
-  Instead of starting the default Django development server this command fires
-  up a copy of the full fledged appengine dev_appserver.
+    Instead of starting the default Django development server this command fires
+    up a copy of the full fledged appengine dev_appserver.
 
-  The appserver is always initialised with a blank datastore with the specified
-  fixtures loaded into it.
-  """
-  help = 'Runs the development server with data from the given fixtures.'
+    The appserver is always initialised with a blank datastore with the specified
+    fixtures loaded into it.
+    """
+    help = 'Runs the development server with data from the given fixtures.'
 
-  def run_from_argv(self, argv):
-    fixtures = argv[2:]
+    def run_from_argv(self, argv):
+        fixtures = argv[2:]
 
-    # Ensure an on-disk test datastore is used.
-    from django.db import connection
-    connection.use_test_datastore = True
-    connection.test_datastore_inmemory = False
+        # Ensure an on-disk test datastore is used.
+        from django.db import connection
+        connection.use_test_datastore = True
+        connection.test_datastore_inmemory = False
 
-    # Flush any existing test datastore.
-    connection.flush()
+        # Flush any existing test datastore.
+        connection.flush()
 
-    # Load the fixtures.
-    from django.core.management import call_command
-    call_command('loaddata', 'initial_data')
-    if fixtures:
-      call_command('loaddata', *fixtures)
+        # Load the fixtures.
+        from django.core.management import call_command
+        call_command('loaddata', 'initial_data')
+        if fixtures:
+            call_command('loaddata', *fixtures)
 
-    # Build new arguments for dev_appserver.
-    datastore_path, history_path = get_test_datastore_paths(False)
-    new_args = argv[0:1]
-    new_args.extend(['--datastore_path', datastore_path])
-    new_args.extend(['--history_path', history_path])
-    new_args.extend([os.getcwdu()])
+        # Build new arguments for dev_appserver.
+        datastore_path, history_path = get_test_datastore_paths(False)
+        new_args = argv[0:1]
+        new_args.extend(['--datastore_path', datastore_path])
+        new_args.extend(['--history_path', history_path])
+        new_args.extend([os.getcwdu()])
 
-    # Add email settings
-    from django.conf import settings
-    new_args.extend(['--smtp_host', settings.EMAIL_HOST,
-                     '--smtp_port', str(settings.EMAIL_PORT),
-                     '--smtp_user', settings.EMAIL_HOST_USER,
-                     '--smtp_password', settings.EMAIL_HOST_PASSWORD])
+        # Add email settings
+        from django.conf import settings
+        new_args.extend(['--smtp_host', settings.EMAIL_HOST,
+                         '--smtp_port', str(settings.EMAIL_PORT),
+                         '--smtp_user', settings.EMAIL_HOST_USER,
+                         '--smtp_password', settings.EMAIL_HOST_PASSWORD])
 
-    # Allow skipped files so we don't die
-    new_args.extend(['--allow_skipped_files'])
+        # Allow skipped files so we don't die
+        new_args.extend(['--allow_skipped_files'])
 
-    # Start the test dev_appserver.
-    from google.appengine.tools import dev_appserver_main
-    dev_appserver_main.main(new_args)
+        # Start the test dev_appserver.
+        from google.appengine.tools import dev_appserver_main
+        dev_appserver_main.main(new_args)

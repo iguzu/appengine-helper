@@ -27,10 +27,10 @@ class Command(BaseCommand):
     help = 'Clears the current datastore and loads the initial fixture data.'
 
     def run_from_argv(self, argv):
-      from django.db import connection
-      connection.flush()
-      from django.core.management import call_command
-      call_command('loaddata', 'initial_data')
+        from django.db import connection
+        connection.flush()
+        from django.core.management import call_command
+        call_command('loaddata', 'initial_data')
 
     def handle(self, *args, **kwargs):
-      self.run_from_argv(None)
+        self.run_from_argv(None)

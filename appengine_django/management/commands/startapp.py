@@ -22,22 +22,21 @@ import appengine_django
 
 
 class Command(startapp.Command):
-  def handle_label(self, *args, **kwds):
-    """Temporary adjust django.__path__ to load app templates from the
-    helpers directory.
-    """
-    old_path = django.__path__
-    django.__path__ = appengine_django.__path__
-    startapp.Command.handle_label(self, *args, **kwds)
-    django.__path__ = old_path
+    def handle_label(self, *args, **kwds):
+        """Temporary adjust django.__path__ to load app templates from the
+        helpers directory.
+        """
+        old_path = django.__path__
+        django.__path__ = appengine_django.__path__
+        startapp.Command.handle_label(self, *args, **kwds)
+        django.__path__ = old_path
 
 
 class ProjectCommand(Command):
-  def __init__(self, project_directory):
-    super(ProjectCommand, self).__init__()
-    self.project_directory = project_directory
+    def __init__(self, project_directory):
+        super(ProjectCommand, self).__init__()
+        self.project_directory = project_directory
 
-  def handle_label(self, app_name, **options):
-    super(ProjectCommand, self).handle_label(app_name, self.project_directory,
-                                             **options)
-
+    def handle_label(self, app_name, **options):
+        super(ProjectCommand, self).handle_label(app_name, self.project_directory,
+                                                 **options)
