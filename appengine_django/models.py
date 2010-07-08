@@ -53,6 +53,7 @@ class ModelOptions(object):
         model_module = sys.modules[cls.__module__]
         self.app_label = model_module.__name__.split('.')[-2]
         self.abstract = False
+        self.fields = []
 
     class pk:
         """Stub the primary key to always be 'key_name'"""
@@ -167,6 +168,7 @@ class BaseModel(db.Model):
     All models used in the application should derive from this class.
     """
     __metaclass__ = PropertiedClassWithDjango
+    _deferred = False
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
