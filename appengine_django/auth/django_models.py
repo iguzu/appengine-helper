@@ -133,12 +133,6 @@ class User(BaseModel):
     def __init__(self,*args,**kwargs):
         super(User,self).__init__(*args,**kwargs)
         self.id = str(self.key())
-        if self.distance_units == None:
-            self.distance_units = 1
-        if self.preferred_distance == None:
-            self.preferred_distance = 30
-        if self.time_format == None:
-            self.time_format = 1
 
     def __unicode__(self):
         return self.username
