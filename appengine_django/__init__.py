@@ -564,22 +564,23 @@ def InstallAuthentication(settings):
     if "django.contrib.auth" not in settings.INSTALLED_APPS:
         return
     try:
-        from appengine_django.auth import models as helper_models
+        helper_models = __import__(settings.AUTH_USER_MODULE, {}, {}, [''])
+        if settings.AUTH_USER_MODULE == 'appengine_django.auth.models':
+            from appengine_django.auth import models as helper_models
+            from django.contrib.auth import decorators as django_decorators
+            from appengine_django.auth.decorators import login_required
+            django_decorators.login_required = login_required
+        
         from django.contrib.auth import models
         models.User = helper_models.User
         models.Group = helper_models.Group
         models.Permission = helper_models.Permission
         models.Message = helper_models.Message
-        from django.contrib.auth import middleware as django_middleware
-        from appengine_django.auth.middleware import AuthenticationMiddleware
-        django_middleware.AuthenticationMiddleware = AuthenticationMiddleware
-        from django.contrib.auth import decorators as django_decorators
-        from appengine_django.auth.decorators import login_required
-        django_decorators.login_required = login_required
         from django.contrib import auth as django_auth
         from django.contrib.auth import tests as django_tests
         django_auth.suite = unittest.TestSuite
         django_tests.suite = unittest.TestSuite
+
         logging.debug("Installing authentication framework")
     except ImportError:
         logging.debug("No Django authentication support available")
