@@ -60,47 +60,9 @@ def check_password(raw_password, enc_password):
 
 
 class UserManager(models.Manager):
-    def create_user(self, username, email, password=None):
-        """
-        Creates and saves a User with the given username, e-mail and password.
-        """
+    def __init__(self,*args,**kwargs):
+        super(UserManager,self).__init__(*args,**kwargs)
 
-        now = datetime.datetime.now()
-        
-        # Normalize the address by lowercasing the domain part of the email
-        # address.
-        try:
-            email_name, domain_part = email.strip().split('@', 1)
-        except ValueError:
-            pass
-        else:
-            email = '@'.join([email_name, domain_part.lower()])
-
-        user = self.model(key_name=username,username=username, email=email, is_staff=False,
-                         is_active=True, is_superuser=False, last_login=now,
-                         date_joined=now)
-
-        if password:
-            user.set_password(password)
-        else:
-            user.set_unusable_password()
-        user.save()
-        return user
-
-    def create_superuser(self, username, email, password):
-        u = self.create_user(username, email, password)
-        u.is_staff = True
-        u.is_active = True
-        u.is_superuser = True
-        u.save()
-        return u
-
-    def make_random_password(self, length=10, allowed_chars='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'):
-        "Generates a random password with the given length and given allowed_chars"
-        # Note that default value of allowed_chars does not have "I" or letters
-        # that look like it -- just to avoid confusion.
-        from random import choice
-        return ''.join([choice(allowed_chars) for i in range(length)])
 
 
 
@@ -128,11 +90,55 @@ class User(BaseModel):
     
     groups = EmptyManager()
     user_permissions = EmptyManager()
-    objects = UserManager()
 
     def __init__(self,*args,**kwargs):
         super(User,self).__init__(*args,**kwargs)
         self.id = str(self.key())
+
+    @classmethod
+    def create_user(self, username, email, password=None):
+        """
+        Creates and saves a User with the given username, e-mail and password.
+        """
+
+        now = datetime.datetime.now()
+        
+        # Normalize the address by lowercasing the domain part of the email
+        # address.
+        try:
+            email_name, domain_part = email.strip().split('@', 1)
+        except ValueError:
+            pass
+        else:
+            email = '@'.join([email_name, domain_part.lower()])
+
+        user = User(key_name=username.lower(),username=username, email=email, is_staff=False,
+                         is_active=True, is_superuser=False, last_login=now,
+                         date_joined=now)
+
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+        user.save()
+        return user
+
+    @classmethod
+    def create_superuser(self, username, email, password):
+        u = self.create_user(username, email, password)
+        u.is_staff = True
+        u.is_active = True
+        u.is_superuser = True
+        u.save()
+        return u
+
+    @classmethod
+    def make_random_password(self, length=10, allowed_chars='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'):
+        "Generates a random password with the given length and given allowed_chars"
+        # Note that default value of allowed_chars does not have "I" or letters
+        # that look like it -- just to avoid confusion.
+        from random import choice
+        return ''.join([choice(allowed_chars) for i in range(length)])
 
     def __unicode__(self):
         return self.username
