@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 
 from google.appengine.api import users
 
-from appengine_django.auth.models import User
 
 
 class GoogleLazyUser(object):
