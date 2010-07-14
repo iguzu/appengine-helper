@@ -25,25 +25,25 @@ from google.appengine.ext.remote_api import remote_api_stub
 
 
 def auth_func():
-    return raw_input('Username:'), getpass.getpass('Password:')
+  return raw_input('Username:'), getpass.getpass('Password:')
 
 class Command(BaseCommand):
-    """ Start up an interactive console backed by your app using remote_api """
+  """ Start up an interactive console backed by your app using remote_api """
+  
+  help = 'Start up an interactive console backed by your app using remote_api.'
 
-    help = 'Start up an interactive console backed by your app using remote_api.'
+  def run_from_argv(self, argv):
+    app_id = argv[2]
+    if len(argv) > 3:
+      host = argv[3]
+    else:
+      host = '%s.appspot.com' % app_id
 
-    def run_from_argv(self, argv):
-        app_id = argv[2]
-        if len(argv) > 3:
-            host = argv[3]
-        else:
-            host = '%s.appspot.com' % app_id
-
-        remote_api_stub.ConfigureRemoteDatastore(app_id,
-                                                 '/remote_api',
-                                                 auth_func,
-                                                 host)
-
-        code.interact('App Engine interactive console for %s' % (app_id,),
-                      None,
-                      locals())
+    remote_api_stub.ConfigureRemoteDatastore(app_id, 
+                                             '/remote_api',
+                                             auth_func,
+                                             host)
+      
+    code.interact('App Engine interactive console for %s' % (app_id,), 
+                  None,
+                  locals())

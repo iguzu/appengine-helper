@@ -22,31 +22,31 @@ from django.core.management.base import BaseCommand
 
 
 def run_appcfg():
-    # import this so that we run through the checks at the beginning
-    # and report the appropriate errors
-    import appcfg
+  # import this so that we run through the checks at the beginning
+  # and report the appropriate errors
+  import appcfg
 
-    # We don't really want to use that one though, it just executes this one
-    from google.appengine.tools import appcfg
+  # We don't really want to use that one though, it just executes this one
+  from google.appengine.tools import appcfg
 
-    # Reset the logging level to WARN as appcfg will spew tons of logs on INFO
-    logging.getLogger().setLevel(logging.WARN)
+  # Reset the logging level to WARN as appcfg will spew tons of logs on INFO
+  logging.getLogger().setLevel(logging.WARN)
 
-    # Note: if we decide to change the name of this command to something other
-    #       than 'vacuum_indexes' we will have to munge the args to replace whatever
-    #       we called it with 'vacuum_indexes'
-    new_args = sys.argv[:]
-    new_args.append('.')
-    appcfg.main(new_args)
+  # Note: if we decide to change the name of this command to something other
+  #       than 'vacuum_indexes' we will have to munge the args to replace whatever
+  #       we called it with 'vacuum_indexes'
+  new_args = sys.argv[:]
+  new_args.append('.')
+  appcfg.main(new_args)
 
 
 class Command(BaseCommand):
-    """Calls the appcfg.py's vacuum_indexes command for the current project.
+  """Calls the appcfg.py's vacuum_indexes command for the current project.
 
-    Any additional arguments are passed directly to appcfg.py.
-    """
-    help = 'Calls appcfg.py vacuum_indexes for the current project.'
-    args = '[any appcfg.py options]'
+  Any additional arguments are passed directly to appcfg.py.
+  """
+  help = 'Calls appcfg.py vacuum_indexes for the current project.'
+  args = '[any appcfg.py options]'
 
-    def run_from_argv(self, argv):
-        run_appcfg()
+  def run_from_argv(self, argv):
+    run_appcfg()

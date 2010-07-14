@@ -24,20 +24,20 @@ from appengine_django import have_appserver
 
 
 class AppengineMemcacheTest(unittest.TestCase):
-    """Tests that the memcache backend works."""
+  """Tests that the memcache backend works."""
 
-    def setUp(self):
-        """Get the memcache cache module so it is available to tests."""
-        self._cache = get_cache("memcached://")
+  def setUp(self):
+    """Get the memcache cache module so it is available to tests."""
+    self._cache = get_cache("memcached://")
 
-    def testSimpleSetGet(self):
-        """Tests that a simple set/get operation through the cache works."""
-        self._cache.set("test_key", "test_value")
-        self.assertEqual(self._cache.get("test_key"), "test_value")
+  def testSimpleSetGet(self):
+    """Tests that a simple set/get operation through the cache works."""
+    self._cache.set("test_key", "test_value")
+    self.assertEqual(self._cache.get("test_key"), "test_value")
 
-    def testDelete(self):
-        """Tests that delete removes values from the cache."""
-        self._cache.set("test_key", "test_value")
-        self.assertEqual(self._cache.has_key("test_key"), True)
-        self._cache.delete("test_key")
-        self.assertEqual(self._cache.has_key("test_key"), False)
+  def testDelete(self):
+    """Tests that delete removes values from the cache."""
+    self._cache.set("test_key", "test_value")
+    self.assertEqual(self._cache.has_key("test_key"), True)
+    self._cache.delete("test_key")
+    self.assertEqual(self._cache.has_key("test_key"), False)

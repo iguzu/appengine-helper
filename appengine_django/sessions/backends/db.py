@@ -23,60 +23,60 @@ from appengine_django.sessions.models import Session
 
 
 class SessionStore(base.SessionBase):
-    """A key-based session store for Google App Engine."""
+  """A key-based session store for Google App Engine."""
 
-    def load(self):
-        session = self._get_session(self.session_key)
-        if session:
-            try:
-                return self.decode(session.session_data)
-            except SuspiciousOperation:
-                # Create a new session_key for extra security.
-                pass
-        self.session_key = self._get_new_session_key()
-        self._session_cache = {}
-        self.save()
-        # Ensure the user is notified via a new cookie.
-        self.modified = True
-        return {}
+  def load(self):
+    session = self._get_session(self.session_key)
+    if session:
+      try:
+        return self.decode(session.session_data)
+      except SuspiciousOperation:
+        # Create a new session_key for extra security.
+        pass
+    self.session_key = self._get_new_session_key()
+    self._session_cache = {}
+    self.save()
+    # Ensure the user is notified via a new cookie.
+    self.modified = True
+    return {}
 
-    def save(self, must_create=False):
-        if must_create and self.exists(self.session_key):
-            raise base.CreateError
-        session = Session(
-            key_name='k:' + self.session_key,
-            session_data = self.encode(self._session),
-            expire_date = self.get_expiry_date())
-        session.put()
+  def save(self, must_create=False):
+    if must_create and self.exists(self.session_key):
+      raise base.CreateError
+    session = Session(
+        key_name='k:' + self.session_key,
+        session_data = self.encode(self._session),
+        expire_date = self.get_expiry_date())
+    session.put()
 
-    def exists(self, session_key):
-        return Session.get_by_key_name('k:' + session_key) is not None
+  def exists(self, session_key):
+    return Session.get_by_key_name('k:' + session_key) is not None
 
-    def delete(self, session_key=None):
-        if session_key is None:
-            session_key = self._session_key
-        session = self._get_session(session_key=session_key)
-        if session:
-            session.delete()
+  def delete(self, session_key=None):
+    if session_key is None:
+      session_key = self._session_key
+    session = self._get_session(session_key=session_key)
+    if session:
+      session.delete()
 
-    def _get_session(self, session_key):
-        session = Session.get_by_key_name('k:' + session_key)
-        if session:
-            if session.expire_date > datetime.now():
-                return session
-            session.delete()
-        return None
+  def _get_session(self, session_key):
+    session = Session.get_by_key_name('k:' + session_key)
+    if session:
+      if session.expire_date > datetime.now():
+        return session
+      session.delete()
+    return None
 
-    def create(self):
-        while True:
-            self.session_key = self._get_new_session_key()
-            try:
-                # Save immediately to ensure we have a unique entry in the
-                # database.
-                self.save(must_create=True)
-            except base.CreateError:
-                # Key wasn't unique. Try again.
-                continue
-            self.modified = True
-            self._session_cache = {}
-            return
+  def create(self):
+    while True:
+      self.session_key = self._get_new_session_key()
+      try:
+        # Save immediately to ensure we have a unique entry in the
+        # database.
+        self.save(must_create=True)
+      except base.CreateError:
+        # Key wasn't unique. Try again.
+        continue
+      self.modified = True
+      self._session_cache = {}
+      return

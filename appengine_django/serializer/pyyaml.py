@@ -28,19 +28,19 @@ except ImportError:
 
 
 class DjangoSafeDumper(yaml.SafeDumper):
-    """Replacement DjangoSafeDumper that handles datetime.time objects.
+  """Replacement DjangoSafeDumper that handles datetime.time objects.
 
-    Serializes datetime.time objects to a YAML timestamp tag, there is a
-    corresponding hack in python.py to convert the datetime.datetime that the
-    YAML decoder returns back to the expected datetime.time object.
-    """
+  Serializes datetime.time objects to a YAML timestamp tag, there is a
+  corresponding hack in python.py to convert the datetime.datetime that the
+  YAML decoder returns back to the expected datetime.time object.
+  """
 
-    def represent_decimal(self, data):
-        return self.represent_scalar('tag:yaml.org,2002:str', str(data))
+  def represent_decimal(self, data):
+    return self.represent_scalar('tag:yaml.org,2002:str', str(data))
 
-    def represent_time(self, data):
-        value = '1970-01-01 %s' % unicode(data.isoformat())
-        return self.represent_scalar('tag:yaml.org,2002:timestamp', value)
+  def represent_time(self, data):
+    value = '1970-01-01 %s' % unicode(data.isoformat())
+    return self.represent_scalar('tag:yaml.org,2002:timestamp', value)
 
 DjangoSafeDumper.add_representer(decimal.Decimal, DjangoSafeDumper.represent_decimal)
 DjangoSafeDumper.add_representer(datetime.time, DjangoSafeDumper.represent_time)

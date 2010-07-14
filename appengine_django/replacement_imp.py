@@ -22,5 +22,5 @@ same functionality as the real 'imp' module.
 
 
 def find_module(name, path=None):
-    """Django needs imp.find_module, but it works fine if nothing is found."""
-    raise ImportError
+  """Django needs imp.find_module, but it works fine if nothing is found."""
+  raise ImportError

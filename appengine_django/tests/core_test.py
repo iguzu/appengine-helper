@@ -26,22 +26,22 @@ from appengine_django import have_appserver
 
 
 class AppengineDjangoTest(unittest.TestCase):
-    """Tests that the helper module has been correctly installed."""
+  """Tests that the helper module has been correctly installed."""
 
-    def testAppidProvided(self):
-        """Tests that application ID and configuration has been loaded."""
-        self.assert_(appid is not None)
+  def testAppidProvided(self):
+    """Tests that application ID and configuration has been loaded."""
+    self.assert_(appid is not None)
 
-    def testAppserverDetection(self):
-        """Tests that the appserver detection flag is present and correct."""
-        # It seems highly unlikely that these tests would ever be run from within
-        # an appserver.
-        self.assertEqual(have_appserver, False)
+  def testAppserverDetection(self):
+    """Tests that the appserver detection flag is present and correct."""
+    # It seems highly unlikely that these tests would ever be run from within
+    # an appserver.
+    self.assertEqual(have_appserver, False)
 
 
 class DjangoTestCaseTest(DjangoTestCase):
-    """Tests that the tests can be subclassed from Django's TestCase class."""
+  """Tests that the tests can be subclassed from Django's TestCase class."""
 
-    def testPassing(self):
-        """Tests that tests with Django's TestCase class work."""
-        self.assert_(True)
+  def testPassing(self):
+    """Tests that tests with Django's TestCase class work."""
+    self.assert_(True)

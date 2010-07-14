@@ -28,5 +28,5 @@ class Command(BaseCommand):
     help = 'Clears the current datastore.'
 
     def run_from_argv(self, argv):
-        from django.db import connection
-        connection.flush()
+      from django.db import connection
+      connection.flush()

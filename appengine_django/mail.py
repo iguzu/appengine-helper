@@ -31,41 +31,41 @@ from google.appengine.api import mail as gmail
 
 
 class GoogleSMTPConnection(SMTPConnection):
-    def __init__(self, host=None, port=None, username=None, password=None,
-                 use_tls=None, fail_silently=False):
-        self.use_tls = (use_tls is not None) and use_tls or settings.EMAIL_USE_TLS
-        self.fail_silently = fail_silently
-        self.connection = None
+  def __init__(self, host=None, port=None, username=None, password=None,
+               use_tls=None, fail_silently=False):
+    self.use_tls = (use_tls is not None) and use_tls or settings.EMAIL_USE_TLS
+    self.fail_silently = fail_silently
+    self.connection = None
 
-    def open(self):
-        self.connection = True
+  def open(self):
+    self.connection = True
 
-    def close(self):
-        pass
+  def close(self):
+    pass
 
-    def _send(self, email_message):
-        """A helper method that does the actual sending."""
-        if not email_message.to:
-            return False
-        try:
-            if (isinstance(email_message,gmail.EmailMessage)):
-                e = message
-            elif (isinstance(email_message,mail.EmailMessage)):
-                e = gmail.EmailMessage(sender=email_message.from_email,
-                                       to=email_message.to,
-                                       subject=email_message.subject,
-                                       body=email_message.body)
-                if email_message.extra_headers.get('Reply-To', None):
-                    e.reply_to = email_message.extra_headers['Reply-To']
-                if email_message.bcc:
-                    e.bcc = list(email_message.bcc)
-                #TODO - add support for html messages and attachments...
-            e.send()
-        except:
-            if not self.fail_silently:
-                raise
-            return False
-        return True
+  def _send(self, email_message):
+    """A helper method that does the actual sending."""
+    if not email_message.to:
+      return False
+    try:
+      if (isinstance(email_message,gmail.EmailMessage)):
+        e = message
+      elif (isinstance(email_message,mail.EmailMessage)):
+        e = gmail.EmailMessage(sender=email_message.from_email,
+                               to=email_message.to,
+                               subject=email_message.subject,
+                               body=email_message.body)
+        if email_message.extra_headers.get('Reply-To', None):
+            e.reply_to = email_message.extra_headers['Reply-To']
+        if email_message.bcc:
+            e.bcc = list(email_message.bcc)
+        #TODO - add support for html messages and attachments...
+      e.send()
+    except:
+      if not self.fail_silently:
+          raise
+      return False
+    return True
 
 
 def mail_admins(subject, message, fail_silently=False):
@@ -81,15 +81,15 @@ def mail_managers(subject, message, fail_silently=False):
 def _mail_group(group, subject, message, fail_silently=False):
     """Sends a message to an administrative group."""
     if group:
-        mail.send_mail(settings.EMAIL_SUBJECT_PREFIX + subject, message,
-                       settings.SERVER_EMAIL, [a[1] for a in group],
-                       fail_silently)
-        return
+      mail.send_mail(settings.EMAIL_SUBJECT_PREFIX + subject, message,
+                     settings.SERVER_EMAIL, [a[1] for a in group],
+                     fail_silently)
+      return
     # If the group had no recipients defined, default to the App Engine admins.
     try:
-        gmail.send_mail_to_admins(settings.SERVER_EMAIL,
-                                  settings.EMAIL_SUBJECT_PREFIX + subject,
-                                  message)
+      gmail.send_mail_to_admins(settings.SERVER_EMAIL,
+                                settings.EMAIL_SUBJECT_PREFIX + subject,
+                                message)
     except:
-        if not fail_silently:
-            raise
+      if not fail_silently:
+        raise

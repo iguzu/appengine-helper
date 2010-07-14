@@ -27,36 +27,36 @@ from appengine_django.db import base
 
 
 class DatastoreTest(unittest.TestCase):
-    """Tests that the datastore stubs have been correctly setup."""
+  """Tests that the datastore stubs have been correctly setup."""
 
-    def testDjangoDBConnection(self):
-        """Tests that the Django DB connection is using our replacement."""
-        self.assert_(isinstance(connection, DatabaseWrapper))
+  def testDjangoDBConnection(self):
+    """Tests that the Django DB connection is using our replacement."""
+    self.assert_(isinstance(connection, DatabaseWrapper))
 
-    def testDjangoDBConnectionStubs(self):
-        """Tests that members required by Django are stubbed."""
-        self.assert_(hasattr(connection, "features"))
-        self.assert_(hasattr(connection, "ops"))
+  def testDjangoDBConnectionStubs(self):
+    """Tests that members required by Django are stubbed."""
+    self.assert_(hasattr(connection, "features"))
+    self.assert_(hasattr(connection, "ops"))
 
-    def testDjangoDBErrorClasses(self):
-        """Tests that the error classes required by Django are stubbed."""
-        self.assert_(hasattr(base, "DatabaseError"))
-        self.assert_(hasattr(base, "IntegrityError"))
+  def testDjangoDBErrorClasses(self):
+    """Tests that the error classes required by Django are stubbed."""
+    self.assert_(hasattr(base, "DatabaseError"))
+    self.assert_(hasattr(base, "IntegrityError"))
 
-    def testDatastorePath(self):
-        """Tests that the datastore path contains the app name."""
-        d_path, h_path = base.get_datastore_paths()
-        self.assertNotEqual(-1, d_path.find("django_%s" % appid))
-        self.assertNotEqual(-1, h_path.find("django_%s" % appid))
+  def testDatastorePath(self):
+    """Tests that the datastore path contains the app name."""
+    d_path, h_path = base.get_datastore_paths()
+    self.assertNotEqual(-1, d_path.find("django_%s" % appid))
+    self.assertNotEqual(-1, h_path.find("django_%s" % appid))
 
-    def testTestInMemoryDatastorePath(self):
-        """Tests that the test datastore is using the in-memory datastore."""
-        td_path, th_path = base.get_test_datastore_paths()
-        self.assert_(td_path is None)
-        self.assert_(th_path is None)
+  def testTestInMemoryDatastorePath(self):
+    """Tests that the test datastore is using the in-memory datastore."""
+    td_path, th_path = base.get_test_datastore_paths()
+    self.assert_(td_path is None)
+    self.assert_(th_path is None)
 
-    def testTestFilesystemDatastorePath(self):
-        """Tests that the test datastore is on the filesystem when requested."""
-        td_path, th_path = base.get_test_datastore_paths(False)
-        self.assertNotEqual(-1, td_path.find("testdatastore"))
-        self.assertNotEqual(-1, th_path.find("testdatastore"))
+  def testTestFilesystemDatastorePath(self):
+    """Tests that the test datastore is on the filesystem when requested."""
+    td_path, th_path = base.get_test_datastore_paths(False)
+    self.assertNotEqual(-1, td_path.find("testdatastore"))
+    self.assertNotEqual(-1, th_path.find("testdatastore"))

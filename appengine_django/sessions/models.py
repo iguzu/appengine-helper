@@ -17,6 +17,6 @@
 from google.appengine.ext import db
 
 class Session(db.Model):
-    """Django compatible App Engine Datastore session model."""
-    session_data = db.BlobProperty()
-    expire_date = db.DateTimeProperty()
+  """Django compatible App Engine Datastore session model."""
+  session_data = db.BlobProperty()
+  expire_date = db.DateTimeProperty()

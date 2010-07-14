@@ -23,17 +23,17 @@ from django.db.backends.creation import BaseDatabaseCreation
 
 class DatabaseCreation(BaseDatabaseCreation):
 
-    def create_test_db(self, *args, **kw):
-        """Destroys the test datastore. A new store will be recreated on demand"""
-        settings.DATABASE_SUPPORTS_TRANSACTIONS = False
-        self.destroy_test_db()
-        self.connection.use_test_datastore = True
-        self.connection.flush()
+  def create_test_db(self, *args, **kw):
+    """Destroys the test datastore. A new store will be recreated on demand"""
+    settings.DATABASE_SUPPORTS_TRANSACTIONS = False
+    self.destroy_test_db()
+    self.connection.use_test_datastore = True
+    self.connection.flush()
 
 
-    def destroy_test_db(self, *args, **kw):
-        """Destroys the test datastore files."""
-        from appengine_django.db.base import destroy_datastore
-        from appengine_django.db.base import get_test_datastore_paths
-        destroy_datastore(*get_test_datastore_paths())
-        logging.debug("Destroyed test datastore")
+  def destroy_test_db(self, *args, **kw):
+    """Destroys the test datastore files."""
+    from appengine_django.db.base import destroy_datastore
+    from appengine_django.db.base import get_test_datastore_paths
+    destroy_datastore(*get_test_datastore_paths())
+    logging.debug("Destroyed test datastore")

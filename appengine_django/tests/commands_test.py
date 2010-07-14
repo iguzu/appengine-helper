@@ -31,6 +31,7 @@ import subprocess
 import tempfile
 import time
 import unittest
+import sys
 
 from django.db.models import get_models
 
@@ -42,144 +43,144 @@ from appengine_django.models import RegistrationTestModel
 
 
 class CommandsTest(unittest.TestCase):
-    """Unit tests for the manage.py commands."""
+  """Unit tests for the manage.py commands."""
 
-    # How many seconds to wait for a command to exit.
-    COMMAND_TIMEOUT = 10
+  # How many seconds to wait for a command to exit.
+  COMMAND_TIMEOUT = 10
 
-    def runCommand(self, command, args=None, int_after=None, input=None):
-        """Helper to run the specified command in a child process.
+  def runCommand(self, command, args=None, int_after=None, input=None):
+    """Helper to run the specified command in a child process.
 
-        Args:
-          command: The name of the command to run.
-          args: List of command arguments to run the command with.
-          int_after: If set to a positive integer, SIGINT will be sent to the
-            running child process after this many seconds to cause an exit. This
-            should be less than the COMMAND_TIMEOUT value (10 seconds).
-          input: A string to write to stdin when the command starts. stdin is
-            closed after the string is written.
+    Args:
+      command: The name of the command to run.
+      args: List of command arguments to run the command with.
+      int_after: If set to a positive integer, SIGINT will be sent to the
+        running child process after this many seconds to cause an exit. This
+        should be less than the COMMAND_TIMEOUT value (10 seconds).
+      input: A string to write to stdin when the command starts. stdin is
+        closed after the string is written.
 
-        Returns:
-          rc: The integer return code of the process.
-          output: A string containing the childs output.
-        """
-        if not args:
-            args = []
+    Returns:
+      rc: The integer return code of the process.
+      output: A string containing the childs output.
+    """
+    if not args:
+      args = []
+    start = time.time()
+    int_sent = False
+    fd = subprocess.PIPE
+
+    child = subprocess.Popen([sys.executable, "manage.py", command] + args,
+                             stdin=fd, stdout=fd, stderr=fd, cwd=os.getcwdu())
+    if input:
+      child.stdin.write(input)
+      child.stdin.close()
+
+    while 1:
+      rc = child.poll()
+      if rc is not None:
+        # Child has exited.
+        break
+      elapsed = time.time() - start
+      if int_after and int_after > 0 and elapsed > int_after and not int_sent:
+        # Sent SIGINT as requested, give child time to exit cleanly.
+        os.kill(child.pid, signal.SIGINT)
         start = time.time()
-        int_sent = False
-        fd = subprocess.PIPE
+        int_sent = True
+        continue
+      if elapsed < self.COMMAND_TIMEOUT:
+        continue
+      # Command is over time, kill and exit loop.
+      os.kill(child.pid, signal.SIGKILL)
+      time.sleep(2)  # Give time for the signal to be received.
+      break
 
-        child = subprocess.Popen(["./manage.py", command] + args, stdin=fd,
-                                 stdout=fd, stderr=fd, cwd=os.getcwdu())
-        if input:
-            child.stdin.write(input)
-            child.stdin.close()
+    # Return status and output.
+    return rc, child.stdout.read(), child.stderr.read()
 
-        while 1:
-            rc = child.poll()
-            if rc is not None:
-                # Child has exited.
-                break
-            elapsed = time.time() - start
-            if int_after and int_after > 0 and elapsed > int_after and not int_sent:
-                # Sent SIGINT as requested, give child time to exit cleanly.
-                os.kill(child.pid, signal.SIGINT)
-                start = time.time()
-                int_sent = True
-                continue
-            if elapsed < self.COMMAND_TIMEOUT:
-                continue
-            # Command is over time, kill and exit loop.
-            os.kill(child.pid, signal.SIGKILL)
-            time.sleep(2)  # Give time for the signal to be received.
-            break
+  def assertCommandSucceeds(self, command, *args, **kwargs):
+    """Asserts that the specified command successfully completes.
 
-        # Return status and output.
-        return rc, child.stdout.read(), child.stderr.read()
+    Args:
+      command: The name of the command to run.
+      All other arguments are passed directly through to the runCommand
+      routine.
 
-    def assertCommandSucceeds(self, command, *args, **kwargs):
-        """Asserts that the specified command successfully completes.
+    Raises:
+      This function does not return anything but will raise assertion errors if
+      the command does not exit successfully.
+    """
+    rc, stdout, stderr = self.runCommand(command, *args, **kwargs)
+    fd, tempname = tempfile.mkstemp()
+    os.write(fd, stdout)
+    os.close(fd)
+    self.assertEquals(0, rc,
+                      "%s did not return successfully (rc: %d): Output in %s" %
+                      (command, rc, tempname))
+    os.unlink(tempname)
 
-        Args:
-          command: The name of the command to run.
-          All other arguments are passed directly through to the runCommand
-          routine.
+  def getCommands(self):
+    """Returns a list of valid commands for manage.py.
 
-        Raises:
-          This function does not return anything but will raise assertion errors if
-          the command does not exit successfully.
-        """
-        rc, stdout, stderr = self.runCommand(command, *args, **kwargs)
-        fd, tempname = tempfile.mkstemp()
-        os.write(fd, stdout)
-        os.close(fd)
-        self.assertEquals(0, rc,
-                          "%s did not return successfully (rc: %d): Output in %s" %
-                          (command, rc, tempname))
-        os.unlink(tempname)
+    Args:
+      None
 
-    def getCommands(self):
-        """Returns a list of valid commands for manage.py.
+    Returns:
+      A list of valid commands for manage.py as read from manage.py's help
+      output.
+    """
+    rc, stdout, stderr = self.runCommand("help")
+    parts = re.split("Available subcommands:", stderr)
+    if len(parts) < 2:
+      return []
 
-        Args:
-          None
+    return [t.strip() for t in parts[-1].split("\n") if t.strip()]
 
-        Returns:
-          A list of valid commands for manage.py as read from manage.py's help
-          output.
-        """
-        rc, stdout, stderr = self.runCommand("help")
-        parts = re.split("Available subcommands:", stderr)
-        if len(parts) < 2:
-            return []
+  def testDiffSettings(self):
+    """Tests the diffsettings command."""
+    self.assertCommandSucceeds("diffsettings")
 
-        return [t.strip() for t in parts[-1].split("\n") if t.strip()]
+  def testDumpData(self):
+    """Tests the dumpdata command."""
+    self.assertCommandSucceeds("dumpdata")
 
-    def testDiffSettings(self):
-        """Tests the diffsettings command."""
-        self.assertCommandSucceeds("diffsettings")
+  def testFlush(self):
+    """Tests the flush command."""
+    self.assertCommandSucceeds("flush")
 
-    def testDumpData(self):
-        """Tests the dumpdata command."""
-        self.assertCommandSucceeds("dumpdata")
+  def testLoadData(self):
+    """Tests the loaddata command."""
+    self.assertCommandSucceeds("loaddata")
 
-    def testFlush(self):
-        """Tests the flush command."""
-        self.assertCommandSucceeds("flush")
+  def testLoadData(self):
+    """Tests the loaddata command."""
+    self.assertCommandSucceeds("loaddata")
 
-    def testLoadData(self):
-        """Tests the loaddata command."""
-        self.assertCommandSucceeds("loaddata")
+  def testReset(self):
+    """Tests the reste command."""
+    self.assertCommandSucceeds("reset", ["appengine_django"])
 
-    def testLoadData(self):
-        """Tests the loaddata command."""
-        self.assertCommandSucceeds("loaddata")
+  # Disabled due to flakiness - re-enable when it can be guaranteed to succeed
+  # reliably.
+  #def testRunserver(self):
+  #  """Tests the runserver command."""
+  #  self.assertCommandSucceeds("runserver", int_after=2.0)
 
-    def testReset(self):
-        """Tests the reste command."""
-        self.assertCommandSucceeds("reset", ["appengine_django"])
+  def testShell(self):
+    """Tests the shell command."""
+    self.assertCommandSucceeds("shell", input="exit")
 
-    # Disabled due to flakiness - re-enable when it can be guaranteed to succeed
-    # reliably.
-    #def testRunserver(self):
-    #  """Tests the runserver command."""
-    #  self.assertCommandSucceeds("runserver", int_after=2.0)
+  def testUpdate(self):
+    """Tests that the update command exists.
 
-    def testShell(self):
-        """Tests the shell command."""
-        self.assertCommandSucceeds("shell", input="exit")
+    Cannot test that it works without mocking out parts of dev_appserver so for
+    now we just assume that if it is present it will work.
+    """
+    cmd_list = self.getCommands()
+    self.assert_("update" in cmd_list)
 
-    def testUpdate(self):
-        """Tests that the update command exists.
-
-        Cannot test that it works without mocking out parts of dev_appserver so for
-        now we just assume that if it is present it will work.
-        """
-        cmd_list = self.getCommands()
-        self.assert_("update" in cmd_list)
-
-    def testZipCommandListFiltersCorrectly(self):
-        """When running under a zipfile test that only valid commands are found."""
-        cmd_list = self.getCommands()
-        self.assert_("__init__" not in cmd_list)
-        self.assert_("base" not in cmd_list)
+  def testZipCommandListFiltersCorrectly(self):
+    """When running under a zipfile test that only valid commands are found."""
+    cmd_list = self.getCommands()
+    self.assert_("__init__" not in cmd_list)
+    self.assert_("base" not in cmd_list)
