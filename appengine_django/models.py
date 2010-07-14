@@ -24,7 +24,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.fields import Field
 from django.db.models.options import Options
 from django.db.models.loading import register_models, get_model
-
+from google.appengine.ext.db import NotSavedError
+from django.db.models import signals
 
 class ModelManager(object):
   """Replacement for the default Django model manager."""
@@ -170,6 +171,27 @@ class BaseModel(db.Model):
 
   # Required for Django 1.1.2 and 1.2.1
   _deferred = False
+
+  def __init__(self,*args,**kwargs):
+    signals.pre_init.send(sender=self.__class__, args=args, kwargs=kwargs)
+    super(BaseModel,self).__init__(*args,**kwargs)
+    signals.post_init.send(sender=self.__class__, instance=self)
+
+  def put(self,*args,**kwargs):
+    signals.pre_save.send(sender=self.__class__, instance=self)
+    created = False
+    try:
+      self.key()
+    except NotSavedError:
+      created = True
+    super(BaseModel,self).put(*args,**kwargs)
+    signals.post_save.send(sender=self.__class__, instance=self, created=created)
+
+  def delete(self,*args,**kwargs):
+    signals.pre_delete.send(sender=self.__class__, instance=self)
+    super(BaseModel,self).delete(*args,**kwargs)
+    signals.post_delete.send(sender=self.__class__, instance=self)
+
 
   def __eq__(self, other):
     if not isinstance(other, self.__class__):
