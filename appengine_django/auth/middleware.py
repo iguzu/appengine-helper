@@ -34,3 +34,19 @@ class GoogleAuthenticationMiddleware(object):
   def process_request(self, request):
     request.__class__.user = GoogleLazyUser()
     return None
+
+SESSION_KEY = '_auth_user_id'
+
+class DjangoLazyUser(object):
+    def __get__(self, request, obj_type=None):
+        if not hasattr(request, '_cached_user'):
+            try:
+                request._cached_user = User.get(request.session[SESSION_KEY]) or AnonymousUser() 
+            except KeyError:
+                request._cached_user = AnonymousUser()
+        return request._cached_user
+
+class DjangoAuthenticationMiddleware(object):
+    def process_request(self, request):
+        request.__class__.user = DjangoLazyUser()
+        return None
