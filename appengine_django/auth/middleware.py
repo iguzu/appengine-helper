@@ -19,7 +19,7 @@ from google.appengine.api import users
 from appengine_django.auth.models import User
 
 
-class LazyUser(object):
+class GoogleLazyUser(object):
   def __get__(self, request, obj_type=None):
     if not hasattr(request, '_cached_user'):
       user = users.get_current_user()
@@ -30,7 +30,7 @@ class LazyUser(object):
     return request._cached_user
 
 
-class AuthenticationMiddleware(object):
+class GoogleAuthenticationMiddleware(object):
   def process_request(self, request):
-    request.__class__.user = LazyUser()
+    request.__class__.user = GoogleLazyUser()
     return None

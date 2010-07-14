@@ -81,7 +81,7 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
 #    'django.contrib.sessions.middleware.SessionMiddleware',
-#    'django.contrib.auth.middleware.AuthenticationMiddleware',
+#    'appengine_django.auth.middleware.GoogleAuthenticationMiddleware',
 #    'django.middleware.doc.XViewMiddleware',
 )
 
@@ -107,3 +107,7 @@ INSTALLED_APPS = (
 #    'django.contrib.sessions',
 #    'django.contrib.sites',
 )
+
+# Authentication Modules
+AUTHENTICATION_BACKENDS = ()
+AUTH_USER_MODULE = 'appengine_django.auth.models'
