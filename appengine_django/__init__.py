@@ -237,6 +237,7 @@ def InstallGoogleMemcache():
   Now you can use CACHE_BACKEND = 'memcached://' in settings.py. IP address
   and port number are not required.
   """
+  logging.debug("Installing App Engine memcache backend")
   from google.appengine.api import memcache
   sys.modules['memcache'] = memcache
   logging.debug("Installed App Engine memcache backend")
@@ -244,7 +245,7 @@ def InstallGoogleMemcache():
 
 def InstallDjangoModuleReplacements():
   """Replaces internal Django modules with App Engine compatible versions."""
-
+  logging.debug("Installing Django core module replacement")
   # Replace the session module with a partial replacement overlay using
   # __path__ so that portions not replaced will fall through to the original
   # implementation.
@@ -282,7 +283,7 @@ def InstallDjangoModuleReplacements():
     _disconnectSignal()
   except CheckedException, e:
     logging.debug("Django rollback handler appears to be already disabled.")
-
+  logging.debug("Installed Django core module replacement")
 
 def PatchDjangoSerializationModules(settings):
   """Monkey patches the Django serialization modules.
@@ -292,6 +293,7 @@ def PatchDjangoSerializationModules(settings):
   for selected modules and methods to give Django the capability to correctly
   serialize and deserialize datastore models.
   """
+  logging.debug("Installing appengine json and python serialization modules")
   # These can't be imported until InstallAppengineDatabaseBackend has run.
   from django.core.serializers import python
   from appengine_django.serializer.python import Deserializer
@@ -325,6 +327,7 @@ def PatchDeserializedObjectClass():
   needing to load the parent instance itself. See the PythonDeserializer for
   more details.
   """
+  logging.debug("installing Replacement DeserializedObject class")
   # This can't be imported until InstallAppengineDatabaseBackend has run.
   from django.core.serializers import base
   class NewDeserializedObject(base.DeserializedObject):
@@ -527,7 +530,8 @@ def InstallAppengineHelperForDjango(version=None):
     logging.error("Django 1.0 or greater is required!")
     sys.exit(1)
 
-  if os.getenv("DEBUG_APPENGINE_DJANGO"):
+
+  if settings.DEBUG:
     logging.getLogger().setLevel(logging.DEBUG)
   else:
     logging.getLogger().setLevel(logging.INFO)
@@ -562,6 +566,7 @@ def InstallGoogleSMTPConnection():
 
 
 def InstallAuthentication(settings):
+  logging.debug("Installing authentication framework")
   if "django.contrib.auth" not in settings.INSTALLED_APPS:
     return
   try:
@@ -580,17 +585,18 @@ def InstallAuthentication(settings):
     models.Group = helper_models.Group
     models.Permission = helper_models.Permission
     models.Message = helper_models.Message
-    from django.contrib import auth as django_auth
-    from django.contrib.auth import tests as django_tests
-    django_auth.suite = unittest.TestSuite
-    django_tests.suite = unittest.TestSuite
+#    from django.contrib import auth as django_auth
+#    from django.contrib.auth import tests as django_tests
+#    django_auth.suite = unittest.TestSuite
+#    django_tests.suite = unittest.TestSuite
 
-    logging.debug("Installing authentication framework")
+    logging.debug("Installed authentication framework")
   except ImportError:
     logging.debug("No Django authentication support available")
 
 
 def InstallModelForm():
+  logging.debug("Installing ModelForm Replacement")
   """Replace Django ModelForm with the AppEngine ModelForm."""
   # This MUST happen as early as possible, but after any auth model patching.
   from google.appengine.ext.db import djangoforms as aeforms
@@ -598,10 +604,12 @@ def InstallModelForm():
     # pre 1.0
     from django import newforms as forms
   except ImportError:
-    from django import forms
+    from django.forms import models
 
+  models.ModelForm = aeforms.ModelForm
+  models.ModelFormMetaclass = aeforms.ModelFormMetaclass
+  from django import forms
   forms.ModelForm = aeforms.ModelForm
-
   # Extend ModelForm with support for EmailProperty
   # TODO: This should be submitted to the main App Engine SDK.
   from google.appengine.ext.db import EmailProperty
@@ -611,3 +619,4 @@ def InstallModelForm():
     defaults.update(kwargs)
     return super(EmailProperty, self).get_form_field(**defaults)
   EmailProperty.get_form_field = get_form_field
+  logging.debug("Installed ModelForm Replacement")

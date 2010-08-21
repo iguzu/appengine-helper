@@ -47,14 +47,15 @@ class ModelOptions(object):
 
   # Django 1.1 compat
   proxy = None
-
+  fields = []
   def __init__(self, cls):
     self.object_name = cls.__name__
     self.module_name = self.object_name.lower()
     model_module = sys.modules[cls.__module__]
     self.app_label = model_module.__name__.split('.')[-2]
     self.abstract = False
-
+    self.model = self.object_name 
+    self.verbose_name = self.module_name 
   class pk:
     """Stub the primary key to always be 'key_name'"""
     name = "key_name"
